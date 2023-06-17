@@ -26,10 +26,10 @@ class ModuleInstance extends InstanceBase {
 	getConfigFields() {
 		return [
 			{
-				type: 'text',
+				type: 'static-text',
 				id: 'info',
-				width: 12,
 				label: 'Information',
+				width: 12,
 				value: 'The TV will need to be configured with a Pre Shared Key (PSK).'
 			},
 			{
@@ -37,7 +37,7 @@ class ModuleInstance extends InstanceBase {
 				id: 'host',
 				label: 'Target IP',
 				width: 6,
-				regex: self.REGEX_IP
+				regex: Regex.IP
 			},
 			{
 				type: 'textinput',
@@ -50,6 +50,95 @@ class ModuleInstance extends InstanceBase {
 
 	updateActions() {
 		UpdateActions(this)
+	}
+	
+	updateFeedbacks() {
+		UpdateFeedbacks(this)
+	}
+	
+	updatePresets() {
+		UpdatePresets(this)
+	}
+	
+	updateVariableDefinitions() {
+		UpdateVariableDefinitions(this)
+	}
+	
+	async sendAction(action) {
+		try {
+			let self = this;
+			let options = action.options;
+			
+			let host = self.config.host;
+			let port = 80;
+			let psk = self.config.psk;
+			
+			let service = null;
+			let method = null;
+			let params = null;
+			
+			switch (action.action) {
+				case 'power_on':
+					service = 'system';
+					method = 'setPowerStatus';
+					params = {status: true};
+					break;
+				case 'power_off':
+					service = 'system';
+					method = 'setPowerStatus';
+					params = {status: false};
+					break;
+				case 'volume_up':
+					service = 'audio';
+					method = 'setAudioVolume';
+					params = {target: 'speaker', volume: '+1'};
+					break;
+				case 'volume_down':
+					service = 'audio';
+					method = 'setAudioVolume';
+					params = {target: 'speaker', volume: '-1'};
+					break;
+				case 'volume_mute':
+					service = 'audio';
+					method = 'setAudioMute';
+					params = {status: true};
+					break;
+				case 'volume_unmute':
+					service = 'audio';
+					method = 'setAudioMute';
+					params = {status: false};
+					break;
+				case 'change_external_input':
+					service = 'avContent';
+					method = 'setPlayContent';
+					let uri = 'extInput:' + options.kind + '?port=' + options.port;
+					params = {uri: uri};
+					break;
+				default:
+					break;
+			}
+			
+			let cmdObj = {};
+			cmdObj.method = method;
+			cmdObj.version = '1.0';
+			cmdObj.id = 1;
+			cmdObj.params = [params];
+			
+			self.postRest('/sony/' + service, host, port, cmdObj)
+			.then(function(arrResult) {
+				if (arrResult[2].error) {
+					//throw an error to the log
+					self.log('error', arrResult[2].error[1]);
+				}else{
+					self.updateStatus(InstanceStatus.Ok)
+				}
+			})
+			.catch(function(arrResult) {
+				self.updateStatus(InstanceStatus.Error)
+			});
+		} catch (error) {
+			this.log('debug', `Action ${action} failed (${error})`)
+		}
 	}
 	
 	getRest(cmd, host, port) {
@@ -110,6 +199,7 @@ class ModuleInstance extends InstanceBase {
 					throw new Error('Invalid method');
 					break;
 			}
+			
 		});
 	};
 
