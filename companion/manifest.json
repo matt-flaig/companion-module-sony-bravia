@@ -3,7 +3,7 @@
 	"name": "sony-bravia",
 	"shortname": "sony-bravia",
 	"description": "A module for controlling Sony Bravia TVs",
-	"version": "0.1.1",
+	"version": "1.0.2",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-sony-bravia.git",
 	"bugs": "https://github.com/bitfocus/companion-module-sony-bravia/issues",
