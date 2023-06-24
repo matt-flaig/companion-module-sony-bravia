@@ -8,7 +8,6 @@ class ModuleInstance extends InstanceBase {
 
 	async init(config) {
 		this.config = config
-		console.log(config)
 
 		this.updateStatus(InstanceStatus.Ok)
 
@@ -151,8 +150,6 @@ class ModuleInstance extends InstanceBase {
 	async doRest(method, cmd, host, port, body) {
 		var self = this;
 		var url = 'http://' + (host ? host : self.config.host) + cmd;
-		console.log(url)
-		console.log(body)
 		
 		let headers = {};
 		headers['X-Auth-PSK'] = self.config.psk;
